@@ -2,27 +2,15 @@ const readline = require('readline-sync')
 const axios = require('axios')
 
 async function start(){
-    const pokemon = searchPokemon()
-    const api = await returnJSON(pokemon)
-    var habilitylist = getStatus(api.data.stats)
-
-    const ability_1 = api.data.abilities[0].ability.name
-    const ability_2 = api.data.abilities[1].ability.name
-    const weight = api.data.weight
-    const height = api.data.height
     
-    var response = `
-pokemon: ${pokemon}
-habilidade 1: ${ability_1}
-habilidade 2: ${ability_2}
-peso: ${weight}
-altura: ${height}
+    const pokemonTyped = searchPokemon()
+    const api = await returnJSON(pokemonTyped)
+    var pokemon = createObjectPokemon(api.data)
+    
+}
 
-status: \n`
-    for(var i = 0; i < habilitylist.length; i++ ){
-        response += `${habilitylist[i].name}: ${habilitylist[i].value} \n`
-    }
-    console.log(response)
+function searchPokemon(){
+    return readline.question('Digite o nome de um pokemon: ')
 }
 
 async function returnJSON(pokemon){
@@ -30,19 +18,35 @@ async function returnJSON(pokemon){
     return response
 }
 
-function getStatus(status){
-    var arrayHabilitys = new Array()
-    for(var i = 0; i < status.length ; i++){
-        var hability = new Object()
-        hability.name = status[i].stat.name
-        hability.value = status[i].base_stat
-        arrayHabilitys.push(hability)
-    }
-    return arrayHabilitys
+function createObjectPokemon(data){
+    var object = new Object()
+    object.id = data.id
+    object.name = data.name
+    object.weight = `${parseFloat(data.weight/10)} kg`
+    object.height = `${parseFloat(data.height/10)} m`
+    getStatus(object ,data.stats)
+    return object
+
 }
 
-function searchPokemon(){
-    return readline.question('Digite o nome de um pokemon: ')
+function getStatus(object, status){
+    object.hp = status[0].base_stat
+    object.attack = status[1].base_stat
+    object.defense = status[2].base_stat
+    object.speed = status[5].base_stat
+    object.special_attack = status[3].base_stat
+    object.special_defense = status[4].base_stat
+}
+
+function verifyAbilities( object, abilities ){
+    if(abilities != null){
+        for(ab in abilities){
+            object.habilidades += ab
+        }
+        return object
+    }else{
+        return object
+    }
 }
 
 start()
